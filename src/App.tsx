@@ -1,26 +1,35 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect } from 'react';
+import UserTable from './components/userTable';
+import Pagination from './components/pagination';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from './store';
+import { fetchUsersThunk, setPage, setSort, sortUsers } from './store/userSlice';
 
-function App() {
+const App: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { users, currentPage, totalPages, sortBy, sortOrder } = useSelector((state: RootState) => state.user);
+
+  useEffect(() => {
+    dispatch(fetchUsersThunk({ page: currentPage, resultsPerPage: 10 }));
+  }, [currentPage, dispatch]);
+
+  const handlePageChange = (page: number) => {
+    dispatch(setPage(page));
+  };
+
+  const handleSort = (sortBy: 'name' | 'username') => {
+    const newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+    dispatch(setSort({ sortBy, sortOrder: newSortOrder }));
+    dispatch(sortUsers());
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">User Table</h1>
+      <UserTable users={users} onSort={handleSort} />
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
     </div>
   );
-}
+};
 
 export default App;
